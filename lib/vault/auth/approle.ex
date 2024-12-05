@@ -24,11 +24,11 @@ defmodule Vault.Auth.Approle do
   def login(vault, params)
 
   def login(%Vault{auth_path: nil} = vault, params),
-    do: Vault.set_auth_path(vault, "approle") |> login(params)
+    do: Vault.set_auth_path(vault, "auth/approle/login") |> login(params)
 
   def login(%Vault{auth_path: path} = vault, params) do
     with {:ok, params} <- validate_params(params),
-         {:ok, body} <- Vault.HTTP.post(vault, url(path), body: params, headers: headers()) do
+         {:ok, body} <- Vault.HTTP.post(vault, path, body: params, headers: headers()) do
       case body do
         %{"errors" => messages} ->
           {:error, messages}
@@ -60,10 +60,6 @@ defmodule Vault.Auth.Approle do
 
   defp validate_params(_params) do
     {:error, :invalid_credentials}
-  end
-
-  defp url(path) do
-    "/auth/" <> path <> "/login"
   end
 
   defp headers() do
